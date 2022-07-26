@@ -1,0 +1,1 @@
+fisco-bcos/bin/fisco-bcos filter=lfs diff=lfs merge=lfs -text
