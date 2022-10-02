@@ -1,10 +1,49 @@
 # LOKI
 
-Blockchain consensus protocols are responsible for coordinating the nodes to make agreements on the transaction results. Their implementation bugs, including memory related and consensus logic vulnerabilities, may pose serious threats. Fuzzing is a promising technique for protocol vulnerability detection. However, existing fuzzers cannot deal with complex consensus states of distributed nodes, thus generating a large number of useless packets, inhibiting its effectiveness in reaching the deep logic of consensus protocols.
+LOKI is a fuzzing framework for blockchain consensus protocols. 
 
-In this work, we propose LOKI, a blockchain consensus protocol fuzzing framework that detects the consensus memory related and logic bugs. LOKI senses consensus states in real-time by masquerading as a node. First, LOKI dynamically builds a state model that records the state transition of each node. After that, LOKI adaptively generates the input targets, types and contents according to the state model. With a bug analyzer, LOKI detects the consensus protocol implementation bugs with well-defined oracles. We implemented and evaluated LOKI on four widely used commercial blockchain systems, including Go-Ethereum, Facebook Diem, IBM Fabric and WeBank FISCO-BCOS. LOKI has detected 20 serious previously unknown vulnerabilities with 9 CVEs assigned. 14 of them are memory related bugs and 6 are consensus logic bugs. Compared with state-of-the-art tools such as Peach, Fluffy and Twins, LOKI improves the branch coverage by an average of 43.21%, 182.05% and 291.58%. 
+# Code Structure
+
+LOKI's source code can be found in the `source` directory. The 4 directorys ended with 'adaption' contain the adaption code to various blockchain systems. The `src` directory contains the main logic of LOKI framework. 
+
+- `state_model.rs` shows how LOKI constructs and updates the state model during the fuzz process.
+
+- `message_pool.rs` , `target_strategy.rs` and `mutator.rs   ` contain the code of the message guider, which records messages into the message pool, mutates the chosen message and sends it to the targets.
+- `engine.rs` contains the main logic of the fuzzing process, that is to generate seeds for each round and send them out to the targets.
 
 # Quickstart
+
+To use LOKI to test a new protocol, one can compile LOKI as a dynamc library by:
+
+```
+cargo build
+```
+
+This may automatically install some dependencies listed in `Cargo.toml`
+
+In addition, one needs to refer to the [FFI documentation](https://doc.rust-lang.org/nomicon/ffi.html) in Rust and write corresponding interfaces. The following code gives an example to write a Rust FFI for C++.
+
+```c++
+extern "C" {
+void send_packet(std::string target_id, unsigned char* _data){
+    auto keyFactory = std::make_shared<bcos::crypto::KeyFactoryImpl>();
+    unsigned char *u_target_id = new unsigned char[target_id.length()+1];
+    strcpy( (char*) u_target_id, target_id.c_str());
+    auto node_id = keyFactory->createKey(bcos::bytesConstRef((bcos::byte*)u_target_id, target_id.length()));
+    auto bcosNodeIDs = std::make_shared<std::vector<bcos::crypto::NodeIDPtr>>();
+    bcosNodeIDs->reserve(1);
+    bcosNodeIDs->push_back(node_id);
+    auto data = bcos::bytesConstRef((bcos::byte*)_data, strlen((char*)_data));
+    // send only the PBFT messages by indicating the module id with 1000
+    FRONTSERVICE->asyncSendMessageByNodeIDs(bcos::protocol::ModuleID::PBFT,*bcosNodeIDs,data);
+}
+```
+
+This code snippet leverages a `C` style interface to implement the packet sending function. Other examples for FFI in Go can be found in `fabric-adaption` or `ethereum-adaption`.
+
+We prepared the binary code of Fabric, Ethereum, FISCO-BCOS and Diem with LOKI. The following instructions illustrate how to use them. 
+
+
 
 ## LOKI for fabric
 
