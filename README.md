@@ -39,7 +39,7 @@ void send_packet(std::string target_id, unsigned char* _data){
 }
 ```
 
-This code snippet leverages a `C` style interface to implement the packet sending function. Other examples for FFI in Go can be found in `fabric-adaption` or `ethereum-adaption`.
+This code snippet leverages a `C` style interface to implement the packet sending function. Other examples for FFI in Go can be found in `fabric-adaption` or `ethereum-adaption`. To adapt to a new consensus protocol, the developers of the corresponding blockchain systems also need to implement 4 interfaces, please refer to `adaption.md`.
 
 We prepared the binary code of Fabric, Ethereum, FISCO-BCOS and Diem with LOKI. The following instructions illustrate how to use them. 
 
@@ -153,7 +153,6 @@ Create an issue for questions and bug reports.
 
 # Contribution
 We welcome your contributions to LOKI! We aim to create an open-source project that is contributed by the open-source community. For general discussions about development, please refer to the issues. 
-To contact us, please send an email to xxx.
 
 # License
 [Apache-2.0 License](https://github.com/BlockFuzz/LOKI/blob/main/LICENSE)
